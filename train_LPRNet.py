@@ -53,7 +53,7 @@ def get_parser():
     parser.add_argument('--train_img_dirs', default="./data/test", help='the train images path')
     parser.add_argument('--test_img_dirs', default="./data/test", help='the test images path')
     parser.add_argument('--dropout_rate', default=0.5, help='dropout rate.')
-    parser.add_argument('--learning_rate', default=0.001, help='base value of learning rate.')
+    parser.add_argument('--learning_rate', default=0.1, help='base value of learning rate.')
     parser.add_argument('--lpr_max_len', default=8, help='license plate number max length.')
     parser.add_argument('--train_batch_size', default=16, help='training batch size.')
     parser.add_argument('--test_batch_size', default=16, help='testing batch size.')
@@ -68,7 +68,7 @@ def get_parser():
     parser.add_argument('--lr_schedule', default=[4, 8, 12, 14, 16], help='schedule for learning rate.')
     parser.add_argument('--save_folder', default='./weights/', help='Location to save checkpoint models')
     # parser.add_argument('--pretrained_model', default='./weights/Final_LPRNet_model.pth', help='pretrained base model')
-    parser.add_argument('--pretrained_model', default='./weights/Final_LPRNet_model.pth', help='pretrained base model')
+    parser.add_argument('--pretrained_model', default='', help='pretrained base model')
 
     args = parser.parse_args()
 
@@ -127,15 +127,15 @@ def train():
     # define optimizer
     # optimizer = optim.SGD(lprnet.parameters(), lr=args.learning_rate,
     #                       momentum=args.momentum, weight_decay=args.weight_decay)
-    optimizer = optim.RMSprop(lprnet.parameters(), lr=args.learning_rate, alpha = 0.9, eps=1e-08,
+    optimizer = optim.RMSprop(lprnet.parameters(), lr=float(args.learning_rate), alpha = 0.9, eps=1e-08,
                          momentum=args.momentum, weight_decay=args.weight_decay)
     train_img_dirs = os.path.expanduser(args.train_img_dirs)
     test_img_dirs = os.path.expanduser(args.test_img_dirs)
     train_dataset = LPRDataLoader(train_img_dirs.split(','), args.img_size, args.lpr_max_len)
     test_dataset = LPRDataLoader(test_img_dirs.split(','), args.img_size, args.lpr_max_len)
 
-    epoch_size = len(train_dataset) // args.train_batch_size
-    max_iter = args.max_epoch * epoch_size
+    epoch_size = len(train_dataset) // int(args.train_batch_size)
+    max_iter = int(args.max_epoch) * epoch_size
 
     ctc_loss = nn.CTCLoss(blank=len(CHARS)-1, reduction='mean') # reduction: 'none' | 'mean' | 'sum'
 
@@ -147,7 +147,7 @@ def train():
     for iteration in range(start_iter, max_iter):
         if iteration % epoch_size == 0:
             # create batch iterator
-            batch_iterator = iter(DataLoader(train_dataset, args.train_batch_size, shuffle=True, num_workers=args.num_workers, collate_fn=collate_fn))
+            batch_iterator = iter(DataLoader(train_dataset, int(args.train_batch_size), shuffle=True, num_workers=int(args.num_workers), collate_fn=collate_fn))
             loss_val = 0
             epoch += 1
 
@@ -166,7 +166,7 @@ def train():
         # get ctc parameters
         input_lengths, target_lengths = sparse_tuple_for_ctc(T_length, lengths)
         # update lr
-        lr = adjust_learning_rate(optimizer, epoch, args.learning_rate, args.lr_schedule)
+        lr = adjust_learning_rate(optimizer, epoch, float(args.learning_rate), args.lr_schedule)
 
         if args.cuda:
             images = Variable(images, requires_grad=False).cuda()
@@ -200,7 +200,7 @@ def train():
     Greedy_Decode_Eval(lprnet, test_dataset, args)
 
     # save final parameters
-    torch.save(lprnet.state_dict(), args.save_folder + 'train_Final_LPRNet_model.pth')
+    torch.save(lprnet.state_dict(), args.save_folder + time.strftime("%m%d-%H%M%S", time.localtime()) +'train_Final_LPRNet_model.pth')
 
 def Greedy_Decode_Eval(Net, datasets, args):
     # TestNet = Net.eval()
