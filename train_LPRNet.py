@@ -50,15 +50,15 @@ def get_parser():
     parser = argparse.ArgumentParser(description='parameters to train net')
     parser.add_argument('--max_epoch', default=15, help='epoch to train the network')
     parser.add_argument('--img_size', default=[94, 24], help='the image size')
-    parser.add_argument('--train_img_dirs', default="~/workspace/trainMixLPR", help='the train images path')
-    parser.add_argument('--test_img_dirs', default="~/workspace/testMixLPR", help='the test images path')
+    parser.add_argument('--train_img_dirs', default="./data/test", help='the train images path')
+    parser.add_argument('--test_img_dirs', default="./data/test", help='the test images path')
     parser.add_argument('--dropout_rate', default=0.5, help='dropout rate.')
-    parser.add_argument('--learning_rate', default=0.1, help='base value of learning rate.')
+    parser.add_argument('--learning_rate', default=0.001, help='base value of learning rate.')
     parser.add_argument('--lpr_max_len', default=8, help='license plate number max length.')
-    parser.add_argument('--train_batch_size', default=128, help='training batch size.')
-    parser.add_argument('--test_batch_size', default=120, help='testing batch size.')
+    parser.add_argument('--train_batch_size', default=16, help='training batch size.')
+    parser.add_argument('--test_batch_size', default=16, help='testing batch size.')
     parser.add_argument('--phase_train', default=True, type=bool, help='train or test phase flag.')
-    parser.add_argument('--num_workers', default=8, type=int, help='Number of workers used in dataloading')
+    parser.add_argument('--num_workers', default=0, type=int, help='Number of workers used in dataloading')
     parser.add_argument('--cuda', default=True, type=bool, help='Use cuda to train model')
     parser.add_argument('--resume_epoch', default=0, type=int, help='resume iter for retraining')
     parser.add_argument('--save_interval', default=2000, type=int, help='interval for save model state dict')
@@ -68,7 +68,7 @@ def get_parser():
     parser.add_argument('--lr_schedule', default=[4, 8, 12, 14, 16], help='schedule for learning rate.')
     parser.add_argument('--save_folder', default='./weights/', help='Location to save checkpoint models')
     # parser.add_argument('--pretrained_model', default='./weights/Final_LPRNet_model.pth', help='pretrained base model')
-    parser.add_argument('--pretrained_model', default='', help='pretrained base model')
+    parser.add_argument('--pretrained_model', default='./weights/Final_LPRNet_model.pth', help='pretrained base model')
 
     args = parser.parse_args()
 
@@ -200,7 +200,7 @@ def train():
     Greedy_Decode_Eval(lprnet, test_dataset, args)
 
     # save final parameters
-    torch.save(lprnet.state_dict(), args.save_folder + 'Final_LPRNet_model.pth')
+    torch.save(lprnet.state_dict(), args.save_folder + 'train_Final_LPRNet_model.pth')
 
 def Greedy_Decode_Eval(Net, datasets, args):
     # TestNet = Net.eval()
