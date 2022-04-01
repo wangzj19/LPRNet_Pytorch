@@ -21,6 +21,21 @@ import time
 import os
 import sys
 
+
+# log
+class Logger(object):
+    def __init__(self, fileN="Default.log"):
+        self.terminal = sys.stdout
+        self.log = open(fileN, "a")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+
+    def flush(self):
+        pass
+
+
 def sparse_tuple_for_ctc(T_length, lengths):
     input_lengths = []
     target_lengths = []
@@ -50,24 +65,24 @@ def adjust_learning_rate(optimizer, cur_epoch, base_lr, lr_schedule):
 
 def get_parser():
     parser = argparse.ArgumentParser(description='parameters to train net')
-    parser.add_argument('--max_epoch', default=100, help='epoch to train the network')
+    parser.add_argument('--max_epoch', default=300, help='epoch to train the network')
     parser.add_argument('--img_size', default=[94, 24], help='the image size')
     parser.add_argument('--train_img_dirs', default="./data/train-ccpd", help='the train images path')
     parser.add_argument('--test_img_dirs', default="./data/test", help='the test images path')
     parser.add_argument('--dropout_rate', default=0.4, help='dropout rate.')
     parser.add_argument('--learning_rate', default=0.001, help='base value of learning rate.')
     parser.add_argument('--lpr_max_len', default=8, help='license plate number max length.')
-    parser.add_argument('--train_batch_size', default=8, help='training batch size.')
-    parser.add_argument('--test_batch_size', default=8, help='testing batch size.')
+    parser.add_argument('--train_batch_size', default=128, help='training batch size.')
+    parser.add_argument('--test_batch_size', default=128, help='testing batch size.')
     parser.add_argument('--phase_train', default=True, type=bool, help='train or test phase flag.')
     parser.add_argument('--num_workers', default=0, type=int, help='Number of workers used in dataloading')
     parser.add_argument('--cuda', default=True, type=bool, help='Use cuda to train model')
     parser.add_argument('--resume_epoch', default=0, type=int, help='resume iter for retraining')
     parser.add_argument('--save_interval', default=2000, type=int, help='interval for save model state dict')
     parser.add_argument('--test_interval', default=2000, type=int, help='interval for evaluate')
-    parser.add_argument('--momentum', default=0.05, type=float, help='momentum')
+    parser.add_argument('--momentum', default=0.5, type=float, help='momentum')
     parser.add_argument('--weight_decay', default=2e-5, type=float, help='Weight decay for SGD')
-    parser.add_argument('--lr_schedule', default=[20, 40, 60, 80, 90], help='schedule for learning rate.')
+    parser.add_argument('--lr_schedule', default=[50, 100, 150, 200, 250], help='schedule for learning rate.')
     parser.add_argument('--save_folder', default='./weights/', help='Location to save checkpoint models')
     # parser.add_argument('--pretrained_model', default='./weights/Final_LPRNet_model.pth', help='pretrained base model')
     parser.add_argument('--pretrained_model', default='', help='pretrained base model')
@@ -85,7 +100,7 @@ def collate_fn(batch):
         imgs.append(torch.from_numpy(img))
         labels.extend(label)
         lengths.append(length)
-    labels = np.asarray(labels).flatten().astype(np.int)
+    labels = np.asarray(labels).flatten().astype(np.int64)
 
     return (torch.stack(imgs, 0), torch.from_numpy(labels), lengths)
 
@@ -282,4 +297,5 @@ def Greedy_Decode_Eval(Net, datasets, args):
 
 
 if __name__ == "__main__":
+    sys.stdout = Logger("./log.txt")  # 这里我将Log输出到txt文件
     train()
