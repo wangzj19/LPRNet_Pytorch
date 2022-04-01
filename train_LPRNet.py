@@ -48,17 +48,17 @@ def adjust_learning_rate(optimizer, cur_epoch, base_lr, lr_schedule):
 
 def get_parser():
     parser = argparse.ArgumentParser(description='parameters to train net')
-    parser.add_argument('--max_epoch', default=15, help='epoch to train the network')
+    parser.add_argument('--max_epoch', default=500, help='epoch to train the network')
     parser.add_argument('--img_size', default=[94, 24], help='the image size')
     parser.add_argument('--train_img_dirs', default="./data/test", help='the train images path')
     parser.add_argument('--test_img_dirs', default="./data/test", help='the test images path')
     parser.add_argument('--dropout_rate', default=0.5, help='dropout rate.')
     parser.add_argument('--learning_rate', default=0.1, help='base value of learning rate.')
     parser.add_argument('--lpr_max_len', default=8, help='license plate number max length.')
-    parser.add_argument('--train_batch_size', default=16, help='training batch size.')
-    parser.add_argument('--test_batch_size', default=16, help='testing batch size.')
+    parser.add_argument('--train_batch_size', default=128, help='training batch size.')
+    parser.add_argument('--test_batch_size', default=128, help='testing batch size.')
     parser.add_argument('--phase_train', default=True, type=bool, help='train or test phase flag.')
-    parser.add_argument('--num_workers', default=0, type=int, help='Number of workers used in dataloading')
+    parser.add_argument('--num_workers', default=8, type=int, help='Number of workers used in dataloading')
     parser.add_argument('--cuda', default=True, type=bool, help='Use cuda to train model')
     parser.add_argument('--resume_epoch', default=0, type=int, help='resume iter for retraining')
     parser.add_argument('--save_interval', default=2000, type=int, help='interval for save model state dict')
@@ -87,8 +87,23 @@ def collate_fn(batch):
 
     return (torch.stack(imgs, 0), torch.from_numpy(labels), lengths)
 
+def args_format(args):
+    args.dropout_rate = float(args.dropout_rate)
+    args.learning_rate = float(args.learning_rate)
+    args.lpr_max_len = int(args.lpr_max_len)
+    args.max_epoch = int(args.max_epoch)
+    args.momentum = float(args.momentum)
+    args.num_workers = int(args.num_workers)
+    args.resume_epoch = int(args.resume_epoch)
+    args.save_interval = int(args.save_interval)
+    args.test_batch_size = int(args.test_batch_size)
+    args.test_interval = int(args.test_interval)
+    args.train_batch_size = int(args.train_batch_size)
+    args.weight_decay = float(args.weight_decay)
+
 def train():
     args = get_parser()
+    args_format(args)
 
     T_length = 18 # args.lpr_max_len
     epoch = 0 + args.resume_epoch
