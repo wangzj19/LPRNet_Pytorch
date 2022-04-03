@@ -297,5 +297,5 @@ def Greedy_Decode_Eval(Net, datasets, args):
 
 
 if __name__ == "__main__":
-    sys.stdout = Logger("./log.txt")  # 这里我将Log输出到txt文件
+    sys.stdout = Logger("./log/log.txt")  # 这里我将Log输出到txt文件
     train()
